@@ -18,6 +18,11 @@ reverse(b.begin(), b.end());
 int n=a.size();
 
 ll dp[n][33][33][2][2][2]; // [dif1]-> 3's - 6's + 17, [dif2]-> 6's - 9's + 17, [u]-> if there has been at least one 3
+//[f1] - > 1 : it is equal to b
+//     - > 0 : it is less than b
+//[f2] - > 1 : it is equal to a
+//     - > 0 : it is greater than a
+
 
 memset(dp,0,sizeof(dp));
 
@@ -32,7 +37,7 @@ for(int i=1;i<n;i++){
 
                 if(!dp[i-1][dif1][dif2][f1][f2][u]) continue;
 
-                // always put the digit loop last, optimized time complexcity
+                // always put the digit loop last, optimizes time complexcity
 
                 for(int digit=0;digit<10;digit++){
 
