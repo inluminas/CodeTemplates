@@ -1,98 +1,75 @@
-const int MAXN = 4e5+10;
+const int lmt=1e5+5;
+int head[lmt],heavy[lmt],par[lmt],lvl[lmt],curpos=0,n,b[lmt],a[lmt],pos[lmt],seg[4*lmt];
+vector<int>adj[lmt];
 
-vector<int> adj[MAXN]; 
-int parent[MAXN], depth[MAXN], heavy[MAXN], head[MAXN], pos[MAXN];
-int value[MAXN]; 
-int currentPos;  
-int segTree[MAXN * 4]; 
-
-vector<int>w[MAXN];
-
-
-int dfs(int u) {
-    int size = 1, maxSubtree = 0;
-    for (int v : adj[u]) {
-        if (v == parent[u]) continue;
-        parent[v] = u;
-        depth[v] = depth[u] + 1;
-        int subtreeSize = dfs(v);
-        size += subtreeSize;
-        if (subtreeSize > maxSubtree) {
-            maxSubtree = subtreeSize;
-            heavy[u] = v;
+int dfs(int u, int p){
+    par[u]=p;
+    lvl[u]=lvl[p]+1;
+    int sz=1,mx=0;
+    for(int v:adj[u]){
+        if(v==p) continue;
+        int subtree=dfs(v,u);
+        if(subtree>mx){
+            mx=subtree;
+            heavy[u]=v;
         }
+        sz+=subtree;
     }
-    return size;
+    return sz;
 }
 
+void hld(int u, int h){
+    head[u]=h;
+    pos[u]=++curpos;
+    b[curpos]=a[u];
+    
+    if(!heavy[u]) return;
+    
+    hld(heavy[u],h);
 
-void decompose(int u, int h) {
-    head[u] = h; 
-    pos[u] = ++currentPos; 
-    if (heavy[u] != -1) {
-        decompose(heavy[u], h); 
-    }
-    for (int v : adj[u]) {
-        if (v != parent[u] && v != heavy[u]) {
-            decompose(v, v); 
-        }
+    for(int v:adj[u]){
+        if(v==par[u] or v==head[u]) continue;
+        hld(v,v);
     }
 }
 
-
-void updateRange(int node, int start, int end, int l, int r, int val) {
-    if (start > r || end < l) return; 
-    if (start >= l && end <= r) { 
-        segTree[node] += val;
+void build(int at,int L,int R){
+    if(L==R){
+        seg[at]=b[L];
         return;
     }
-    int mid = (start + end) / 2;
-    updateRange(node * 2, start, mid, l, r, val);
-    updateRange(node * 2 + 1, mid + 1, end, l, r, val);
+    int mid=(L+R)>>1;
+    build(at*2,L,mid); build(at*2+1,mid+1,R);
+    seg[at]=seg[at*2]+seg[at*2+1];
 }
 
-int queryPoint(int node, int start, int end, int idx) {
-    if (start == end) return segTree[node]; 
-    int mid = (start + end) / 2;
-    if (idx <= mid) return segTree[node] + queryPoint(node * 2, start, mid, idx);
-    else return segTree[node] + queryPoint(node * 2 + 1, mid + 1, end, idx);
-}
-
-// updates all ancestors of u till root
-void updateAncestors(int u, int n) {
-    while (u != -1) {
-        updateRange(1, 1, n, pos[head[u]], pos[u], 1);
-        u = parent[head[u]]; 
+void update(int at,int L, int R, int pos, int val){
+    if(L==R){
+        seg[at]+=val;
+        return;
     }
+    int mid=(L+R)>>1;
+    if(pos<=mid) update(at*2,L,mid,pos,val);
+    else update(at*2+1,mid+1,R,pos,val);
+    seg[at]=seg[at*2]+seg[at*2+1];
 }
 
-// queries the updated value of node u
-int queryNode(int u) {
-    return queryPoint(1, 1, currentPos, pos[u]);
+int query(int at,int L,int R,int l,int r){
+    if(r<L or R<l or r<l) return 0LL;
+    if(l<=L && R<=r) return seg[at];
+    int mid=(L+R)>>1;
+    int x=query(at*2,L,mid,l,r), y=query(at*2+1,mid+1,R,l,r);
+    return (x+y);
 }
 
-void solve(int tst) {
-    int n; 
-    cin >> n;
- 
-    for(int i=1;i<=n;i++){
-        int W; cin>>W;
-        w[W].push_back(i);
+int getans(int u, int v){
+    int res=0;
+    while(head[u]!=head[v]){
+        if(lvl[head[u]]<lvl[head[v]]) swap(u,v);
+        res+=query(1,1,n,pos[head[u]],pos[u]);
+        u=par[head[u]];
     }
- 
-    for (int i = 0; i < n - 1; ++i) {
-        int u, v;
-        cin >> u >> v;
-        adj[u].push_back(v);
-        adj[v].push_back(u);
-    }
- 
-    memset(heavy, -1, sizeof(heavy));
-    parent[1] = -1;
-    depth[1] = 0;
-    currentPos = 0;
- 
-    
-    dfs(1);
-    decompose(1, 1);
+    if(lvl[u]>lvl[v]) swap(u,v);
+    res+=query(1,1,n,pos[u],pos[v]);
+    return res;
 }
