@@ -28,7 +28,7 @@ void hld(int u, int h){
     hld(heavy[u],h);
 
     for(int v:adj[u]){
-        if(v==par[u] or v==head[u]) continue;
+        if(v==par[u] or v==heavy[u]) continue;
         hld(v,v);
     }
 }
