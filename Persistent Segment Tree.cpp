@@ -1,67 +1,93 @@
-const int lmt=1e5+5;
-ll seg[60*lmt],lft[60*lmt],rght[60*lmt];
-ll a[lmt],curpos=0,ver[lmt];
-int n;
+class persistent_segtree{
+public:
+    vector<int>tree, ver, lft, rght;
+    int curpos = 0;
 
-void build(int at,int L,int R){
-    if(L==R){
-        seg[at]=a[L];
+    void init(int N){
+        tree.resize(20 * N + 1);
+        ver.resize(N + 1);
+        lft.resize(20 * N + 1);
+        rght.resize(20 * N + 1);
+    }
+
+    void build(int at, int L, int R){
+        if(L == R){
+            tree[at] = 0;
+            return;
+        }
+        int mid = (L + R ) >> 1;
+        lft[at] = ++curpos, rght[at] = ++curpos;
+        build(lft[at], L, mid); build(rght[at], mid + 1, R);
+        tree[at] = tree[lft[at]] + tree[rght[at]];
         return;
     }
-    lft[at]=++curpos, rght[at]=++curpos;
-    int mid=(L+R)>>1;
-    build(lft[at],L,mid); build(rght[at],mid+1,R);
-    seg[at]=seg[lft[at]]+seg[rght[at]];
-}
 
-ll update(int at, int L, int R,int pos, ll v){
-    if(pos<L or R<pos) return at;
+    int update(int at, int L, int R, int pos, int val){
+        if(pos < L or R < pos) return at;
+        
+        int newat = ++curpos;
 
-    int newat=++curpos;
+        if(L == R){
+            tree[newat] = tree[at] + val;
+            return newat;
+        }
 
-    if(L==R){
-        seg[newat]=seg[at]+v;
+        int mid = (L + R ) >> 1;
+        lft[newat] = update(lft[at], L, mid, pos, val);
+        rght[newat] = update(rght[at], mid + 1, R, pos, val);
+        tree[newat] = tree[lft[newat]] + tree[rght[newat]];
         return newat;
     }
 
-    int mid=(L+R)>>1;
+    int query(int at, int L, int R, int l, int r){
+        if(R < l or r < L or r < l) return 0;
+        if(l <= L and R <= r) return tree[at];
 
-    lft[newat]=update(lft[at],L,mid,pos,v);
-    rght[newat]=update(rght[at],mid+1,R,pos,v);
-    seg[newat]=seg[lft[newat]]+seg[rght[newat]];
-    return newat;
-}
-
-ll query(int at,int L,int R,int l,int r){
-    if(R<l or r<L or r<l) return 0LL;
-    if(l<=L and R<=r) return seg[at];
-
-    int mid=(L+R)>>1;
-    ll x=query(lft[at],L,mid,l,r), y=query(rght[at],mid+1,R,l,r);
-    return (x+y);
-}
+        int mid = (L + R) >> 1;
+        int x = query(lft[at], L, mid, l, r), y = query(rght[at], mid + 1, R, l, r);
+        return x + y;
+    }
 
 
+    // given an array, in a online query for (l, r, k) -> find the kth element in between [l, r] range if [l, r] is sorted .
+    // the i'th version is for i'th element of the array, and the update is on value's position (coordinate compres the values)
+    // Lver = l - 1, Rver = r;
+    int find_kth(int Lver, int Rver, int L, int R, int k){
+        if(L == R) return L;
+        int cnt = tree[lft[Rver]] - tree[lft[Lver]];
+        int mid = (L + R ) >> 1;
+        if(k <= cnt) return find_kth(lft[Lver], lft[Rver], L, mid, k);
+        return find_kth(rght[Lver], rght[Rver], mid + 1, R, k - cnt);
+    }
+};
 
-void solve(int tst){
-    cin>>n;
-    for(int i=1;i<=n;i++) cin>>a[i];
+int main(){
+    // kth element in sorted [l, r]
 
-    ver[0]=++curpos;
-    build(curpos,1,n);
-    int k=0;
+    int n; cin >> n;
+    int a[n + 1];
+    for(int i = 1; i <= n; i++) cin >> a[i];
 
-    int q; cin>>q;
+    
+    for(int i = 1; i <= n; i++) b.push_back(a[i]);
+    sort(b.begin(), b.end());
+    b.erase(unique(b.begin(), b.end()), b.end());
+    map<int, int>mp;
+    for(int i = 0; i < b.size(); i++) mp[b[i]] = i + 1;
+
+    persistent_segtree p;
+    p.init(max(n, m));
+    p.ver[0] = ++p.curpos;
+
+    p.build(1, 1, m);
+
+    for(int i = 1; i <= n; i++){
+        p.ver[i] = p.update(p.ver[i - 1], 1, m, mp[a[i]], 1);
+    }
+
     while(q--){
-        int t; cin>>t;
-        if(t<2){
-            int idx,pos; ll v;
-            cin>>idx>>pos>>v;
-            ver[++k]=update(ver[idx],1,n,pos,v);
-        }else{
-            int idx,l,r; cin>>idx>>l>>r;
+        int l, r, k; cin >> l >> r >> k;
 
-            cout<<query(ver[idx],1,n,l,r)<<endl;
-        }
+        cout << b[p.find_kth(p.ver[l - 1], p.ver[r], 1, m, k) - 1] << endl;
     }
 }
