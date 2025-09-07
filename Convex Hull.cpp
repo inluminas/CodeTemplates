@@ -1,9 +1,9 @@
 // 0 - based indexing
 struct pt {
     double x, y;
-    ll idx;
+    int idx;
 
-    pt(double _x = 0, double _y = 0, ll _idx = 0){
+    pt(double _x = 0, double _y = 0, int _idx = 0){
         x = _x, y = _y, idx = _idx;
     }
 };
@@ -38,7 +38,7 @@ public:
         hull.clear();
 
         /// Building lower hull
-        for(ll i = 0; i < n; i++) {
+        for(int i = 0; i < n; i++) {
             while (sz > 1 && cw(p[i], hull[sz - 1], hull[sz - 2], include_linear)){
                 hull.pop_back(); 
                 sz--;
@@ -49,7 +49,7 @@ public:
 
         /// Building upper hull
         for(int i = n - 2, j = sz + 1; i >= 0; i--) {
-            while (sz > 1 && cw(p[i], hull[sz - 1], hull[sz - 2], include_linear)){
+            while (sz >= j && cw(p[i], hull[sz - 1], hull[sz - 2], include_linear)){
                 hull.pop_back();
                 sz--;
             }
