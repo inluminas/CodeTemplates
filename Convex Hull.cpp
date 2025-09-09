@@ -37,7 +37,7 @@ public:
         sz = 0;
         hull.clear();
 
-        /// Building lower hull
+        /// Building upper hull
         for(int i = 0; i < n; i++) {
             while (sz > 1 && cw(p[i], hull[sz - 1], hull[sz - 2], include_linear)){
                 hull.pop_back(); 
@@ -47,7 +47,7 @@ public:
             sz++;
         }
 
-        /// Building upper hull
+        /// Building lower hull
         for(int i = n - 2, j = sz + 1; i >= 0; i--) {
             while (sz >= j && cw(p[i], hull[sz - 1], hull[sz - 2], include_linear)){
                 hull.pop_back();
