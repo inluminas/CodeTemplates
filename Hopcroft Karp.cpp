@@ -1,3 +1,5 @@
+// Minimum path cover in a DAG = N - Maximum Bipartite matching in a graph of (uin, uout) version of original graph
+// if in original graph (u -> v), then (uout -> vin)
 class Hopcroft{
 public:
     int n, res = 0;
