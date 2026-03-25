@@ -9,3 +9,10 @@ using ordered_set = tree<T, null_type, less<T>, rb_tree_tag, tree_order_statisti
 
 template <typename T>
 using ordered_multiset = tree<T, null_type, less_equal<T>, rb_tree_tag, tree_order_statistics_node_update>;
+
+
+// pragma
+#pragma GCC optimize ("03")
+#pragma GCC target ("sse4")
+#pragma GCC optimize ("unroll-loops")
+
